@@ -1,19 +1,24 @@
 from Maze import Maze
-from generation import method_a
+from generation import method_a, method_b, method_c
 
 
-maze, num = method_a(20, 20, constrained=True, wall_num=300)
+maze, num = method_a(20, 20, constrained=False, wall_num=200)
+# maze, num = method_c(10, 10)
 print(num)
 print(maze.is_fully_reachable())
 print(f"unreachable chambers: {maze.count_unreachable_chambers()}")
-maze.draw()
+# maze.draw()
+print(maze.count_walls()+ len(maze.non_existing_walls()) )
+print(20*20*2 + 20 + 20)
 
 
 
 
 
 
-# maze = Maze(4, 4)
+
+# maze = Maze(4, 4, full=True)
+# maze.vertex_add_wall((1,4), (2,4))
 #
 # maze.add_wall(1, 1, "T")
 # maze.add_wall(1, 1, "L")
