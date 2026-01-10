@@ -13,16 +13,18 @@ class Cell:
 
 # class for maze
 class Maze:
-    def __init__(self, width, height): # creates a maze with no walls
+    def __init__(self, width, height, full=False): # creates a maze with no walls
         self.W = width
         self.H = height
         self.grid = [[Cell() for _ in range(height)] for _ in range(width)]
 
-        # TODO: maybe remove? and if not, then do it for y as well
-        # # make outter wall
-        # for x in range(width):
-        #     self.grid[x][0].bottom = True
-        #     self.grid[x][height-1].top = True
+        # this is for method c where we need full walls
+        if full:
+            for x in range(width):
+                for y in range(height):
+                    directions = ["Top", "Bottom", "Left", "Right"]
+                    for direction in directions:
+                        self.add_wall(x, y, direction)
 
     def is_boundary(self, x, y):
         return x == 0 or y == 0 or x == self.W - 1 or y == self.H - 1
@@ -52,6 +54,37 @@ class Maze:
             self.grid[x+1][y].left = not delete
         else:
             return
+
+    # add a wall between vertexes
+    def vertex_add_wall(self, v1, v2, delete=False):
+        dx = v2[0]-v1[0]
+        dy = v2[1]-v1[1]
+
+        # just to make sure they are adjacent
+        assert abs(dx) + abs(dy) == 1
+
+        # right
+        if dx == 1:
+            if v2[1] > 0:
+                self.add_wall(v1[0], v1[1]-1, "top", delete)
+            elif v2[1] == 0:
+                self.add_wall(v1[0], v1[1], "bottom", delete)
+
+        # left
+        elif dx == -1:
+            self.vertex_add_wall(v2, v1, delete)
+
+        # up
+        elif dy == 1:  # up
+            if v2[0] > 0:
+                self.add_wall(v1[0] - 1, v1[1], "right", delete)
+            elif v2[0] == 0:
+                self.add_wall(v1[0], v1[1], "left", delete)
+
+        # down
+        elif dy == -1:
+            self.vertex_add_wall(v2, v1, delete)
+
 
     # count unreachable chambers
     def count_unreachable_chambers(self, from_origin=None):
@@ -125,6 +158,55 @@ class Maze:
 
         return wall_count
 
+    # function to list all the walls of the maze (I know count_walls() could depend on it, but I wrote this one further into the project)
+    def existing_walls(self):
+        # since we want to avoid duplicates, we count only rights and tops (except boundaries)
+        walls = []
+
+        for x in range(self.W):
+            for y in range(self.H):
+                cell = self.grid[x][y]
+
+                # top walls
+                if cell.top:
+                    walls.append((x, y, "top"))
+                # right walls
+                if cell.right:
+                    walls.append((x, y, "right"))
+
+                # bottom row
+                if y == 0 and cell.bottom:
+                    walls.append((x, y, "bottom"))
+                # left-most column
+                if x == 0 and cell.left:
+                    walls.append((x, y, "left"))
+
+        return walls
+
+    # function to list all non-existant walls
+    def non_existing_walls(self):
+        # since we want to avoid duplicates, we count only rights and tops (except boundaries)
+        walls = []
+
+        for x in range(self.W):
+            for y in range(self.H):
+                cell = self.grid[x][y]
+
+                # top
+                if not cell.top:
+                    walls.append((x, y, "top"))
+                # right
+                if not cell.right:
+                    walls.append((x, y, "right"))
+
+                # bottom boundary
+                if y == 0 and not cell.bottom:
+                    walls.append((x, y, "bottom"))
+                # left-most wall
+                if x == 0 and not cell.left:
+                    walls.append((x, y, "left"))
+
+        return walls
 
     def draw(self):
         fig, ax = plt.subplots()
