@@ -31,12 +31,16 @@ def unreachable_chambers_comparison_ab( width=20, height=20, wall_counts=range(1
 
         # we will do this number of trials for the wall number and then average the results
         for _ in range(trials):
-            maze_a, count = method_a(width, height, constrained=False, wall_num=wall_num, max_time=max_time)
-            assert count == wall_num
+            count=-1
+            while count != wall_num:
+                maze_a, count = method_a(width, height, constrained=False, wall_num=wall_num, max_time=max_time)
+
             unreachable_a.append(maze_a.count_unreachable_chambers())
 
-            maze_b, count = method_b(width, height, constrained=False, wall_num=wall_num, max_time=max_time)
-            assert count == wall_num
+            count=-1
+            while count != wall_num:
+                maze_b, count = method_b(width, height, constrained=False, wall_num=wall_num, max_time=max_time)
+
             unreachable_b.append(maze_b.count_unreachable_chambers())
 
         results_a.append(np.mean(unreachable_a))
@@ -78,9 +82,9 @@ if __name__ == '__main__':
 
     width = 30
     height = 30
-    trials = 50
+    trials = 20
     max_walls = 1740
     walls, res_a, res_b = unreachable_chambers_comparison_ab(width=width, height=height,
                                                              wall_counts=range(1, max_walls, 10), trials=trials,
-                                                             max_time=200)
+                                                             max_time=400)
     plot_comparison(walls, res_a, res_b, width=width, height=height, trials=trials)
