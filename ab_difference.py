@@ -19,7 +19,7 @@ def compare_methods(width=10, height=10, wall_nums=(20, 40, 60)):
 
         ax = axes[row, 0]
         draw_maze_on_ax(maze_a, ax)
-        ax.set_title(f"Method A — walls={wa}")
+        ax.set_title(f"Method A: walls={wa}")
 
         maze_b, wb = method_b(
             width=width,
@@ -30,7 +30,7 @@ def compare_methods(width=10, height=10, wall_nums=(20, 40, 60)):
 
         ax = axes[row, 1]
         draw_maze_on_ax(maze_b, ax)
-        ax.set_title(f"Method B — walls={wb}")
+        ax.set_title(f"Method B: walls={wb}")
 
     plt.tight_layout()
     plt.savefig("ab_constrained.svg")
