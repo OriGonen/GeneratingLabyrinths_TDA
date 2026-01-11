@@ -13,6 +13,7 @@ def draw_maze_3d(maze):
     ax.set_xlim(0, maze.W)
     ax.set_ylim(0, maze.H)
     ax.set_zlim(0, maze.D)
+    plt.savefig('maze.png', dpi=300, bbox_inches='tight')
     plt.show()
 
 
