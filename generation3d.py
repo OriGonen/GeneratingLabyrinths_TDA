@@ -20,7 +20,7 @@ def method_a_3d(W=5, H=5, D=5, wall_num=-1, max_time=60):
         x, y, z, d = rng.choice(candidates)
         maze.add_wall(x, y, z, d)
 
-        if maze.is_fully_reachable():
+        if not maze.is_fully_reachable():
             maze.add_wall(x, y, z, d, delete=True)
 
-    return maze, maze.count_walls(), maze.count_unreachable_chambers()
+    return maze, maze.count_walls()
