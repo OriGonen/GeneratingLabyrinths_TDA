@@ -5,6 +5,8 @@
 (c) by starting with the 1-skeleton of a full triangulation and then randomly erasing edges.
 """
 import random
+
+from CellComplex import torus_boundary_cells
 from Maze import Maze
 import time
 
@@ -124,4 +126,28 @@ def method_c(width=10, height=10, max_time=20):
 
     return maze, maze.count_unreachable_chambers()
 
+'''
+------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------generalization to 2D--------------------------------------------------------
+------------------------------------------------------------------------------------------------------------------------
+'''
+# same logic as original method a
+def general_method_a(complex,wall_num,boundary_function=torus_boundary_cells, constrained=True):
+    rng = random.Random()
 
+    candidate_edges = [e for e in complex.edges if not e.present]
+
+    while candidate_edges and complex.wall_count() < wall_num:
+        e = rng.choice(candidate_edges)
+
+        e.present = True
+
+        if constrained and complex.count_unreachable_cells(boundary_function(complex)) > 0:
+            # reject wall
+            e.present = False
+            continue
+
+        # accept wall
+        candidate_edges.remove(e)
+
+    return complex
