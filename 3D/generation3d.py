@@ -3,9 +3,11 @@ import time
 from Maze3D import Maze3D
 
 
-def method_a_3d(W=5, H=5, D=5, wall_num=-1, max_time=60):
+def method_a_3d(maze=None, W=5, H=5, D=5, wall_num=-1, max_time=60):
     t0 = time.time()
-    maze = Maze3D(W, H, D)
+    if(maze is None):
+        maze = Maze3D(W, H, D)
+
     rng = random.Random()
 
     # get all possible internal wall locations

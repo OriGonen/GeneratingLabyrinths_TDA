@@ -1,5 +1,6 @@
 from collections import deque
 import matplotlib.pyplot as plt
+import networkx as nx
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
@@ -14,10 +15,15 @@ class Maze3D:
     OPPOSITES = {"xp": "xn", "xn": "xp", "yp": "yn", "yn": "yp", "zp": "zn", "zn": "zp"}
     DELTAS = {"xp": (1, 0, 0), "xn": (-1, 0, 0), "yp": (0, 1, 0), "yn": (0, -1, 0), "zp": (0, 0, 1), "zn": (0, 0, -1)}
 
-    def __init__(self, W, H, D):
+    def __init__(self, W, H, D, start = None):
         # Create a grid of WxHxD cells
         self.W, self.H, self.D = W, H, D
         self.grid = [[[Cell3D() for _ in range(D)] for _ in range(H)] for _ in range(W)]
+        if start is not None:
+            self.start = start
+        else:
+            # Just choose the front bottom corner in the plotting.
+            self.start = (self.W - 1, self.H - 1, self.D - 1)
 
     # Wrapper func. for checking if it is a valid cell
     def in_bounds(self, x, y, z):
@@ -40,7 +46,11 @@ class Maze3D:
         self.grid[nx][ny][nz].walls[self.OPPOSITES[direction]] = not delete
 
     def count_unreachable_chambers_deprecated(self):
-        # BFS to find all cells reachable from the boundary
+        # NOTE: This is the deprecated way of counting unreachable chambers.
+        #       This one counts unreachable chambers from all boundary cells.
+        #       The reason we removed this one because the end maximal maze is always the same.
+        #       => It results in a foster, where each boundary cell is its own single vertex graph.
+        #           With trees that represent the internal nodes that need to be connected together.
         visited = set()
         queue = deque()
 
@@ -71,10 +81,10 @@ class Maze3D:
 
         return (self.W * self.H * self.D) - len(visited)
 
-    def count_unreachable_chambers(self, start=(0, 0, 0)):
-        sx, sy, sz = start
+    def count_unreachable_chambers(self):
+        sx, sy, sz = self.start
         if not self.in_bounds(sx, sy, sz):
-            raise ValueError(f"start {start} is out of bounds")
+            raise ValueError(f"start {self.start} is out of bounds")
         visited = {(sx, sy, sz)}
         queue = deque([(sx, sy, sz)])
 
@@ -133,16 +143,76 @@ class Maze3D:
         if d == "zp":
             return [(x, y, z + 1), (x + 1, y, z + 1), (x + 1, y + 1, z + 1), (x, y + 1, z + 1)]
 
-    def draw(self):
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection='3d')
+    def draw_with_dual_graph(self, show=True, filename='maze_dual.png'):
+        fig = plt.figure(figsize=(16, 7))
+
+        # === LEFT SUBPLOT: Maze walls (3D) ===
+        ax1 = fig.add_subplot(121, projection='3d')
 
         for x, y, z, d in self.existing_walls():
             verts = self.get_face_vertices(x, y, z, d)
-            ax.add_collection3d(Poly3DCollection([verts], alpha=0.6, edgecolor='k'))
+            ax1.add_collection3d(Poly3DCollection([verts], alpha=0.6, edgecolor='k'))
 
-        ax.set_xlim(0, self.W)
-        ax.set_ylim(0, self.H)
-        ax.set_zlim(0, self.D)
-        plt.savefig('maze.png', dpi=300, bbox_inches='tight')
-        plt.show()
+        ax1.set_xlim(0, self.W)
+        ax1.set_ylim(0, self.H)
+        ax1.set_zlim(0, self.D)
+        ax1.set_xlabel('X')
+        ax1.set_ylabel('Y')
+        ax1.set_zlabel('Z')
+        ax1.set_title(f'Maze Walls (w={self.count_walls()})')
+        ax1.view_init(elev=20, azim=45)
+
+        # === RIGHT SUBPLOT: Dual graph (2D) ===
+        ax2 = fig.add_subplot(122)
+
+        # Build the graph
+        G = nx.Graph()
+
+        # Add nodes and edges
+        for x in range(self.W):
+            for y in range(self.H):
+                for z in range(self.D):
+                    node_id = (x, y, z)
+                    G.add_node(node_id)
+
+                    cell = self.grid[x][y][z]
+                    for d in ["xp", "yp", "zp"]:
+                        if not cell.walls[d]:
+                            dx, dy, dz = self.DELTAS[d]
+                            nx_coord, ny_coord, nz_coord = x + dx, y + dy, z + dz
+                            if self.in_bounds(nx_coord, ny_coord, nz_coord):
+                                neighbor_id = (nx_coord, ny_coord, nz_coord)
+                                if not G.has_edge(node_id, neighbor_id):
+                                    G.add_edge(node_id, neighbor_id)
+
+        # Simple 2D layout
+        pos = nx.spring_layout(G, seed=42)
+
+        # Draw edges
+        nx.draw_networkx_edges(G, pos, ax=ax2, edge_color='gray', alpha=0.5, width=1)
+
+        # Draw all nodes
+        nx.draw_networkx_nodes(G, pos, ax=ax2, node_color='steelblue', node_size=100, alpha=0.8)
+
+        # Highlight start node
+        start_node = self.start
+        nx.draw_networkx_nodes(G, pos, nodelist=[start_node], ax=ax2,
+                               node_color='red', node_size=200, edgecolors='darkred', linewidths=2)
+
+        # Calculate stats
+        num_nodes = G.number_of_nodes()
+        num_edges = G.number_of_edges()
+        connected = nx.is_connected(G)
+
+        ax2.set_title(f'Dual Graph\n|V|={num_nodes}, |E|={num_edges}, connected={connected}')
+        ax2.axis('off')
+
+        plt.tight_layout()
+
+        if filename:
+            plt.savefig(filename, dpi=300, bbox_inches='tight')
+
+        if show:
+            plt.show()
+
+        return fig, ax1, ax2
