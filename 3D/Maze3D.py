@@ -1,4 +1,6 @@
 from collections import deque
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 
 class Cell3D:
@@ -122,3 +124,25 @@ class Maze3D:
 
     def count_walls(self):
         return len(self.existing_walls())
+
+    def get_face_vertices(self, x, y, z, d):
+        if d == "xp":
+            return [(x + 1, y, z), (x + 1, y + 1, z), (x + 1, y + 1, z + 1), (x + 1, y, z + 1)]
+        if d == "yp":
+            return [(x, y + 1, z), (x + 1, y + 1, z), (x + 1, y + 1, z + 1), (x, y + 1, z + 1)]
+        if d == "zp":
+            return [(x, y, z + 1), (x + 1, y, z + 1), (x + 1, y + 1, z + 1), (x, y + 1, z + 1)]
+
+    def draw(self):
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        for x, y, z, d in self.existing_walls():
+            verts = self.get_face_vertices(x, y, z, d)
+            ax.add_collection3d(Poly3DCollection([verts], alpha=0.6, edgecolor='k'))
+
+        ax.set_xlim(0, self.W)
+        ax.set_ylim(0, self.H)
+        ax.set_zlim(0, self.D)
+        plt.savefig('maze.png', dpi=300, bbox_inches='tight')
+        plt.show()
