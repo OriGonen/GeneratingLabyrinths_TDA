@@ -37,7 +37,7 @@ class Maze3D:
         self.grid[x][y][z].walls[direction] = not delete
         self.grid[nx][ny][nz].walls[self.OPPOSITES[direction]] = not delete
 
-    def count_unreachable_chambers(self):
+    def count_unreachable_chambers_deprecated(self):
         # BFS to find all cells reachable from the boundary
         visited = set()
         queue = deque()
@@ -63,6 +63,28 @@ class Maze3D:
                 nx, ny, nz = x + dx, y + dy, z + dz
 
                 # If neighbor is valid and not visited, add to queue
+                if self.in_bounds(nx, ny, nz) and (nx, ny, nz) not in visited:
+                    visited.add((nx, ny, nz))
+                    queue.append((nx, ny, nz))
+
+        return (self.W * self.H * self.D) - len(visited)
+
+    def count_unreachable_chambers(self, start=(0, 0, 0)):
+        sx, sy, sz = start
+        if not self.in_bounds(sx, sy, sz):
+            raise ValueError(f"start {start} is out of bounds")
+        visited = {(sx, sy, sz)}
+        queue = deque([(sx, sy, sz)])
+
+        while queue:
+            x, y, z = queue.popleft()
+            cell = self.grid[x][y][z]
+
+            for d, (dx, dy, dz) in self.DELTAS.items():
+                if cell.walls[d]:
+                    continue
+
+                nx, ny, nz = x + dx, y + dy, z + dz
                 if self.in_bounds(nx, ny, nz) and (nx, ny, nz) not in visited:
                     visited.add((nx, ny, nz))
                     queue.append((nx, ny, nz))
