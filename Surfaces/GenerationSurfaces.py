@@ -7,7 +7,6 @@ import time
 def general_method_a(
         maze_surface, boundary_function, wall_num=-1, max_time=20
 ):
-    # Generate all the functions
     rng = random.Random()
     t0 = time.time()
 
@@ -31,8 +30,7 @@ def general_method_a(
 
 
 def general_method_b(
-        maze_surface, boundary_function, constrained=True,
-        wall_num=-1, max_time=20
+    maze_surface, boundary_function, wall_num = -1, max_time=20
 ):
     rng = random.Random()
     t0 = time.time()
@@ -44,20 +42,22 @@ def general_method_b(
 
     while maze_surface.wall_count() < wall_num and time.time() - t0 < max_time:
         available_edges = [e for e in current_cell.edges
-                           if not e.present and e not in maze_surface.protected_edges]
+                          if not e.present and e not in maze_surface.protected_edges]
 
         if not available_edges:
             current_cell = rng.choice(maze_surface.cells)
             continue
 
-        e = rng.choice(available_edges)
-        e.present = True
+        rng.shuffle(available_edges)
+        for e in available_edges:
+            e.present = True
 
-        if constrained and not maze_surface.is_fully_reachable(boundary_function(maze_surface)):
-            e.present = False
-        else:
-            other_cell = next(iter(e.cells - {current_cell}))
-            current_cell = other_cell
+            if not maze_surface.is_fully_reachable(boundary_function(maze_surface)):
+                e.present = False
+            else:
+                other_cell = next(iter(e.cells - {current_cell}))
+                current_cell = other_cell
+                break
 
     return maze_surface
 

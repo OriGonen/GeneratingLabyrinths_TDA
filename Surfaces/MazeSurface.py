@@ -63,6 +63,7 @@ class MazeSurface:
         H = max_y - min_y + 1
         fig, ax = plt.subplots(figsize=(W, H))
 
+        # Draw black walls (present edges)
         for e in self.edges:
             if not e.present:
                 continue
@@ -73,7 +74,6 @@ class MazeSurface:
             dx = abs(x2 - x1)
             dy = abs(y2 - y1)
 
-            # non-wrap edges
             if dx <= 1 and dy <= 1:
                 if dx == 1 and dy == 0:
                     x = max(x1, x2)
@@ -91,6 +91,32 @@ class MazeSurface:
                     linestyle="dashed",
                     linewidth=2,
                 )
+
+        # Draw blue dashed loops (protected edges)
+        if self.protected_edges:
+            # Horizontal loops
+            y_coords = set()
+            for e in self.protected_edges:
+                c1, c2 = tuple(e.cells)
+                y1, y2 = c1.id[1], c2.id[1]
+                if y1 == y2:
+                    y_coords.add(y1)
+
+            for y in y_coords:
+                ax.plot([min_x, max_x + 1], [y + 0.5, y + 0.5],
+                        color="blue", linewidth=2.5, linestyle="dashed", alpha=0.7)
+
+            # Vertical loops
+            x_coords = set()
+            for e in self.protected_edges:
+                c1, c2 = tuple(e.cells)
+                x1, x2 = c1.id[0], c2.id[0]
+                if x1 == x2:
+                    x_coords.add(x1)
+
+            for x in x_coords:
+                ax.plot([x + 0.5, x + 0.5], [min_y, max_y + 1],
+                        color="blue", linewidth=2.5, linestyle="dashed", alpha=0.7)
 
         ax.set_xlim(min_x, max_x + 1)
         ax.set_ylim(min_y, max_y + 1)
