@@ -54,7 +54,7 @@ class MazeSurface:
     def non_existing_edges(self):
         return [e for e in self.edges if not e.present]
 
-    def draw(self, show_wrap_edges=False, name=None):
+    def draw(self, show_wrap_edges=False, name=None, method=None):
         xs = [c.id[0] for c in self.cells]
         ys = [c.id[1] for c in self.cells]
         min_x, max_x = min(xs), max(xs)
@@ -118,8 +118,18 @@ class MazeSurface:
                 ax.plot([x + 0.5, x + 0.5], [min_y, max_y + 1],
                         color="blue", linewidth=2.5, linestyle="dashed", alpha=0.7)
 
-        ax.set_xlim(min_x, max_x + 1)
-        ax.set_ylim(min_y, max_y + 1)
+        # Draw grey border around the square
+        ax.plot([min_x, max_x + 1, max_x + 1, min_x, min_x],
+                [min_y, min_y, max_y + 1, max_y + 1, min_y],
+                color="grey", linewidth=3)
+
+        # Add method text above
+        if method:
+            ax.text(0.5 * (min_x + max_x + 1), max_y + 1.3, f"Method: {method}",
+                    fontsize=14, fontweight='bold', ha='center')
+
+        ax.set_xlim(min_x - 0.2, max_x + 1.2)
+        ax.set_ylim(min_y - 0.2, max_y + 1.4)
         ax.set_aspect("equal")
         ax.axis("off")
 
