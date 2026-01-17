@@ -1,4 +1,5 @@
 from collections import deque
+
 import matplotlib.pyplot as plt
 import networkx as nx
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -15,7 +16,7 @@ class Maze3D:
     OPPOSITES = {"xp": "xn", "xn": "xp", "yp": "yn", "yn": "yp", "zp": "zn", "zn": "zp"}
     DELTAS = {"xp": (1, 0, 0), "xn": (-1, 0, 0), "yp": (0, 1, 0), "yn": (0, -1, 0), "zp": (0, 0, 1), "zn": (0, 0, -1)}
 
-    def __init__(self, W, H, D, start = None):
+    def __init__(self, W, H, D, start=None):
         # Create a grid of WxHxD cells
         self.W, self.H, self.D = W, H, D
         self.grid = [[[Cell3D() for _ in range(D)] for _ in range(H)] for _ in range(W)]
@@ -48,7 +49,7 @@ class Maze3D:
     def count_unreachable_chambers_deprecated(self):
         # NOTE: This is the deprecated way of counting unreachable chambers.
         #       This one counts unreachable chambers from all boundary cells.
-        #       The reason we removed this one because the end maximal maze is always the same.
+        #       The reason we removed this one because the end maximal maze is always the same (at least on the bounds).
         #       => It results in a foster, where each boundary cell is its own single vertex graph.
         #           With trees that represent the internal nodes that need to be connected together.
         visited = set()
@@ -128,7 +129,7 @@ class Maze3D:
                     cell = self.grid[x][y][z]
                     for d in ["xp", "yp", "zp"]:
                         dx, dy, dz = self.DELTAS[d]
-                        if self.in_bounds(x+dx, y+dy, z+dz) and cell.walls[d]:
+                        if self.in_bounds(x + dx, y + dy, z + dz) and cell.walls[d]:
                             walls.append((x, y, z, d))
         return walls
 

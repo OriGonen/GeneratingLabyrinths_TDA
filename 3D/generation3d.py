@@ -1,11 +1,12 @@
 import random
 import time
+
 from Maze3D import Maze3D
 
 
 def method_a_3d(maze=None, W=5, H=5, D=5, wall_num=-1, max_time=60):
     t0 = time.time()
-    if(maze is None):
+    if (maze is None):
         maze = Maze3D(W, H, D)
 
     rng = random.Random()
